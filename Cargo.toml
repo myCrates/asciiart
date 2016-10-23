@@ -1,0 +1,8 @@
+[package]
+name = "asciiart"
+version = "0.1.0"
+authors = ["mvaude <maxime.vaude@gmail.com>"]
+
+[dependencies]
+hyper = "0.9.10"
+kuchiki = {version = "0.3.1", features = ["hyper"]}
