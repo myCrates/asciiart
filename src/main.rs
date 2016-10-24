@@ -3,36 +3,32 @@
 //   - main phase (select the asciiart to output
 
 extern crate hyper;
-extern crate kuchiki;
+
+use std::process::Command;
+use std::fs::File;
+use std::io::{Read, Write, BufWriter};
 
 use hyper::client::Client;
-use kuchiki::traits::ParserExt;
 
 fn get_art(url: String) -> String {
     let client = Client::new();
 
-    let res = client.get(&url)
-        .send().unwrap();
-    if res.status == hyper::NotFound {
-        return "nothing".to_string();
-    }
-    let document = kuchiki::parse_html().from_http(res).unwrap();
+    let mut output = String::new();
+    let mut res = client.get(&url).send().unwrap();
 
-    return document.select("pre").unwrap().last().unwrap().text_contents();
+    res.read_to_string(&mut output).expect("no response body");
+    let pwd = Command::new("sh").arg("-c").arg("pwd").output().expect("Failed to pwd");
+    println!("{}", String::from_utf8_lossy(&pwd.stdout));
+    let f = File::create("assets/asciiartfarts.com").expect("Unable to create file");
+    let mut f = BufWriter::new(f);
+    f.write_all(output.as_bytes()).expect("Unable to write data");
+    return output;
 }
 
 fn main() {
-    let url = "http://www.asciiartfarts.com/";
-    for year in 1999..2015 {
-        for month in 1..13 {
-            for day in 1..32 {
-                let art_url = url.to_string() + &year.to_string() + &format!("{:02}", month) + &format!("{:02}", day) + &".html".to_string();
-                println!("{}", art_url);
-                let art = get_art(art_url);
-                println!("{}", art);
-            }
-        }
-    }
+    let url = "http://www.asciiartfarts.com/fortune.txt";
+    let art = get_art(url.to_string());
+    println!("{}", art);
     // println!("Response: {}", res.status);
     // println!("Headers:\n{}", res.headers);
     println!("everything went fine");
